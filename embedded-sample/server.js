@@ -69,4 +69,8 @@ app.prepare().then(() => {
 
     server.use(router.allowedMethods())
     server.use(router.routes())
+
+    server.listen(port, () => {
+        console.log(`> Running on http://localhost:${port}`)
+    })
 })
