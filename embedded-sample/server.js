@@ -13,12 +13,12 @@ dotenv.config();
 Shopify.Context.initialize({
     API_KEY: process.env.SHOPIFY_API_KEY,
     API_SECRET_KEY: process.env.SHOPIFY_API_SECRET,
-    SCOPES: process.env.SHOPIFY_API_SCOPES.split(),
-    HOST_NAME: process.env.SHOPIFY_APP_URL.replace(/https:\/\//,),
+    SCOPES: process.env.SHOPIFY_API_SCOPES.split(","),
+    HOST_NAME: process.env.SHOPIFY_APP_URL.replace(/https:\/\//, ""),
     API_VERSION: ApiVersion.October20,
     IS_EMBEDDED_APP: true,
     SESSION_STORAGE: new Shopify.Session.MemorySessionStorage(),
-})
+});
 
 const port = parseInt(process.env.PORT, 10) || 3000;
 const dev = process.env.NODE_ENV !== 'production';
@@ -41,6 +41,8 @@ app.prepare().then(() => {
             afterAuth(ctx) {
                 const { shop, scope } = ctx.state.shopify
                 ACTIVE_SHOPIFY_SHOPS[shop] = scope
+                // console.log('---added shopify shop--')
+                // console.log(ACTIVE_SHOPIFY_SHOPS[shop])
 
                 ctx.redirect(`/`)
             },
@@ -54,7 +56,7 @@ app.prepare().then(() => {
     }
     router.get('/', async (ctx) => {
         const shop = ctx.query.shop
-
+        // console.log(ACTIVE_SHOPIFY_SHOPS[shop])
         if (ACTIVE_SHOPIFY_SHOPS[shop] === undefined) {
             ctx.redirect(`/auth?shop=${shop}`)
         } else {
