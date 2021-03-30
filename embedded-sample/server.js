@@ -25,6 +25,9 @@ const dev = process.env.NODE_ENV !== 'production';
 const app = next({ dev });
 const handle = app.getRequestHandler();
 
+// add active shopify shops
+const ACTIVE_SHOPIFY_SHOPS = {}
+
 // add app to server file
 app.prepare().then(() => {
     // add koa server
@@ -36,6 +39,9 @@ app.prepare().then(() => {
     server.use(
         createShopifyAuth({
             afterAuth(ctx) {
+                const { shop, scope } = ctx.state.shopify
+                ACTIVE_SHOPIFY_SHOPS[shop] = scope
+
                 ctx.redirect(`/`)
             },
         }),
@@ -46,6 +52,15 @@ app.prepare().then(() => {
         ctx.respond = false
         ctx.res.statusCode = 200
     }
+    router.get('/', async (ctx) => {
+        const shop = ctx.query.shop
+
+        if (ACTIVE_SHOPIFY_SHOPS[shop] === undefined) {
+            ctx.redirect(`/auth?shop=${shop}`)
+        } else {
+            await handleRequest(ctx)
+        }
+    })
 
     // router.get('(.*)', handleRequest)
     router.get('(/_next/static/.*)', handleRequest)
