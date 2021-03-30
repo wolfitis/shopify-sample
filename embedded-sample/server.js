@@ -32,13 +32,25 @@ app.prepare().then(() => {
     const router = new Router()
     server.keys = [Shopify.Context.API_SECRET_KEY]
 
+    // add createShopifyAuth and verifyRequest middleware
+    server.use(
+        createShopifyAuth({
+            afterAuth(ctx) {
+                ctx.redirect(`/`)
+            },
+        }),
+    )
+
     const handleRequest = async (ctx) => {
         await handle(ctx.req, ctx.res)
         ctx.respond = false
         ctx.res.statusCode = 200
     }
 
-    router.get('(.*)', handleRequest)
+    // router.get('(.*)', handleRequest)
+    router.get('(/_next/static/.*)', handleRequest)
+    router.get('/_next/webpack-hmr', handleRequest)
+    router.get('(.*)', verifyRequest(), handleRequest)
 
     server.use(router.allowedMethods())
     server.use(router.routes())
